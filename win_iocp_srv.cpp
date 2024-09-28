@@ -4,12 +4,16 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include <map>
 
 #pragma comment(lib, "Ws2_32.lib")
 
 #define PORT 7777
 #define BUFFER_SIZE 1024
 #define TRUSTED_SIGNATURE "signature"
+
+std::map<SOCKET, int> clientIds;
+int nextClientId = 1;
 
 // Structure to hold per-client context
 struct ClientContext {
@@ -37,11 +41,15 @@ void handleRequest(ClientContext* context, DWORD bytesTransferred) {
             // Log signature approval
             std::cout << "APPROVED\n";
 
-            // Approved
-            std::string response = "APPROVED";
+            // Assign client an ID and store it
+            int clientId = nextClientId++;
+            clientIds[context->clientSocket] = clientId;
+
+            // Approved response, including the client ID
+            std::string response = "APPROVED. Your Client ID is: " + std::to_string(clientId);
             send(context->clientSocket, response.c_str(), response.size(), 0);
 
-            std::cout << "REQUEST: APPROVED\n";  // Log request approval
+            std::cout << "REQUEST: APPROVED, Client ID: " << clientId << "\n";  // Log request approval
         }
         else {
             // Log incorrect signature
@@ -53,6 +61,13 @@ void handleRequest(ClientContext* context, DWORD bytesTransferred) {
 
             std::cout << "REQUEST: DENIED\n";  // Log request denial
         }
+    }
+    else {
+        // Treat it as a message from the client
+        int clientId = clientIds[context->clientSocket];
+        std::string message(context->buffer, bytesTransferred);
+
+        std::cout << "Client " << clientId << " says: " << message << "\n";
     }
 }
 

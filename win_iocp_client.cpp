@@ -7,7 +7,7 @@
 
 #define PORT 7777
 #define BUFFER_SIZE 1024
-#define SIGNATURE "signature" // This will be automated later but now this'll do
+#define SIGNATURE "signature"  // This will be automated later, but now this'll do
 
 int main() {
     WSADATA wsaData;
@@ -33,20 +33,35 @@ int main() {
     }
 
     std::cout << "Connected to the server. Press Enter to send a request...\n";
+    std::cin.get();  // Wait for the user to press Enter
 
-    while (true) {
-        std::cin.get();  // Wait for the user to press Enter
+    // Send request to server with the client's "signature"
+    std::string request = "REQUEST:" + std::string(SIGNATURE);
+    send(clientSocket, request.c_str(), request.size(), 0);
 
-        // Send request to server with the client's "signature"
-        std::string request = "REQUEST:" + std::string(SIGNATURE);
-        send(clientSocket, request.c_str(), request.size(), 0);
+    // Receive response from server
+    char buffer[BUFFER_SIZE] = { 0 };
+    int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+    if (bytesReceived > 0) {
+        std::string response(buffer, bytesReceived);
+        std::cout << "Server Response: " << response << "\n";
 
-        // Receive response from server
-        char buffer[BUFFER_SIZE] = { 0 };
-        int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
-        if (bytesReceived > 0) {
-            std::string response(buffer, bytesReceived);
-            std::cout << "Server Response: " << response << "\n";
+        if (response.find("APPROVED") != std::string::npos) {
+            std::cout << "Connection approved. You can now send messages.\n";
+
+            // Start sending messages
+            while (true) {
+                std::string message;
+                std::cout << "Enter message: ";
+                std::getline(std::cin, message);  // Take user input
+
+                if (message == "exit") {
+                    break;
+                }
+
+                // Send message to the server
+                send(clientSocket, message.c_str(), message.size(), 0);
+            }
         }
     }
 
