@@ -8,7 +8,6 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-#define PORT 7777
 #define BUFFER_SIZE 1024
 #define TRUSTED_SIGNATURE "signature"
 
@@ -91,15 +90,33 @@ int main() {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 
+    // Ask the user to specify the port number
+    int port;
+    std::cout << "Enter the port number to start the server: ";
+    std::cin >> port;
+
     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
+    serverAddr.sin_port = htons(port);  // Use the user-specified port
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
-    listen(serverSocket, SOMAXCONN);
+    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        std::cerr << "Bind failed. Error: " << WSAGetLastError() << "\n";
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+        std::cerr << "Listen failed. Error: " << WSAGetLastError() << "\n";
+        closesocket(serverSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "Server started on port " << port << ". Waiting for connections...\n";
 
     completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 
