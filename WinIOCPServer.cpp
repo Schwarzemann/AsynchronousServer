@@ -10,7 +10,7 @@
 
 #define PORT 7777
 #define BUFFER_SIZE 1024
-#define TRUSTED_SIGNATURE "Signature"
+#define TRUSTED_SIGNATURE "signature"
 
 std::map<SOCKET, int> clientIds;
 std::map<SOCKET, std::string> clientUsernames; // Map to store usernames

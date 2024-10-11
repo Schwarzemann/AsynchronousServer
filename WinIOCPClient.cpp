@@ -7,7 +7,7 @@
 
 #define PORT 7777
 #define BUFFER_SIZE 1024
-#define SIGNATURE "Signature"  // This will be automated later, but now this'll do
+#define SIGNATURE "signature"  // This will be automated later, but now this'll do
 
 int main() {
     WSADATA wsaData;
